@@ -72,9 +72,11 @@ class PointEnv():
         return self.q_0, self.v_0
 
     def _set_obstacles(self, n_obstacles):
-        self.obstacles = np.zeros((0,3))
-        self.obstacles = np.array([[2., 1.8, 1.],[2., 3., .7], [2., 4., 1.2],[1.8, 6., 1.2],
-                                   [3., 1.8, 1.],[4., 1.8, 1.],])
+        # self.obstacles = np.zeros((0,3))
+        # self.obstacles = np.array([[2., 1.8, 1.],[2., 3., .7], [2., 4., 1.2],[1.8, 6., 1.2],
+        #                            [3., 1.8, 1.],[4., 1.8, 1.],])
+
+        self.obstacles = np.array([[5., 5., 1.],])
 
         for i in range(n_obstacles):
             obs = np.random.rand(2)*self.qlimits[0][1]

@@ -1,5 +1,6 @@
 import os
 import numpy as np
+from scipy.integrate import odeint
 
 import matplotlib.pyplot as plt
 from geo_fab.envs import add_obstacle
@@ -8,15 +9,26 @@ def solve_euler(q, dq, dt):
     return q + dq * dt
 
 
+def sec_order_linear(y, t, u0, u1):
+    dq = y[2:]
+    dydt = dq.tolist() + [u0, u1]
+    return dydt
+
+def integrate(q, dq, ddq, dt):
+    y0 = q.tolist() + dq.tolist()
+    t = np.linspace(0, dt, 2)
+    sol = odeint(sec_order_linear, y0, t, args=tuple(ddq))
+    return np.array(sol[-1,:2]), np.array(sol[-1, 2:])
+
 class PointEnv():
     """
     Particle Simple Environment.
     """
-    def __init__(self, reward_type=0, time_step=1 / 240., dynamics=True, n_obstacles=0):
+    def __init__(self, reward_type=0, time_step=1 / 1000., dynamics=True, n_obstacles=0, T=3000):
         ## Particle params
         self.fq = 1/time_step
         self.n_substeps = 1.
-        self.T = 100
+        self.T = T
         self.qlimits = np.array([[0., 10.], [0., 10.]])
         ## Obstacles
         self.n_obstacles = n_obstacles
@@ -31,26 +43,34 @@ class PointEnv():
     def dt(self):
         return 1 / self.fq * self.n_substeps
 
-    def reset(self, q0=None):
+    def reset(self, q0=None, dq0=None):
         ## Set Obstacles
         self._set_obstacles(self.n_obstacles)
         ## Initialize Particle Environment
         self.q_0 = np.random.rand(2)*self.qlimits[0][1]
-        self.q_0 = np.zeros(2)
-        self.v_0 = np.zeros(2)
+
+        if q0 is None:
+            self.q_0 = np.zeros(2)
+        else:
+            self.q_0 = q0
+        if dq0 is None:
+            self.v_0 = np.zeros(2)
+        else:
+            self.v_0 = dq0
 
         self.trj = self.q_0[None,:]
         self._visualize_trj()
         return self._get_observations()
 
-    def step(self, action, vel=True):
+    def step(self, action, vel=False):
         ## Compute Linear Dynamics
         if vel:
             v_1 = action
             q_1 = self.q_0 + action*self.dt
         else:
-            v_1 = self.v_0 + action*self.dt
-            q_1 = self.q_0 + self.v_0*self.dt + 0.5*(action**2)*(self.dt**2)
+            # v_1 = self.v_0 + action*self.dt
+            # q_1 = self.q_0 + self.v_0*self.dt + 0.5*(action**2)*(self.dt**2)
+            q_1, v_1 = integrate(self.q_0, self.v_0, action, self.dt)
 
         ## Bound q_1##
         for i in range(q_1.shape[0]):
@@ -77,6 +97,7 @@ class PointEnv():
         #                            [3., 1.8, 1.],[4., 1.8, 1.],])
 
         self.obstacles = np.array([[5., 5., 1.],])
+        self.obstacles = np.zeros((0,3))
 
         for i in range(n_obstacles):
             obs = np.random.rand(2)*self.qlimits[0][1]

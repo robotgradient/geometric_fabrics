@@ -16,6 +16,8 @@ B   = potentials.NaiveDamping(torch.ones(2)).B
 phi = potentials.AttractorPotential(k=100.)
 
 F = geometric_fabrics.GeometricFabrics(M=M, epsilon=eps, f=f, phi=phi, B=B)
+
+
 policy = task_maps.RelMapFabric(F=F, qd=torch.ones(2)*5.)
 ##################
 

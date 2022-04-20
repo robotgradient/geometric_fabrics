@@ -109,3 +109,21 @@ class EnergizingFabrics(GeometricFabrics):
         return M, epsilon, f_b, grad_phi, B
 
 
+class ComposedGeometricFabrics(BaseGeoFabric):
+    '''
+    Composed Geometric Fabric: A weighted sum of the Geometric Fabrics
+    '''
+    def __init__(self, Fs, ws):
+        self.Fs = Fs
+        self.ws = ws
+
+    def get_ddq(self, q,dq):
+        print('To be define')
+
+    def get_energy(self, q, dq):
+        E = 0
+        for Fi, wi in zip(self.Fs, self.ws):
+            E += wi*Fi.get_energy(q, dq)
+        return E
+
+

@@ -1,1 +1,1 @@
-from .geometric_fabrics import EnergizingFabrics
+from .geometric_fabrics import BaseGeoFabric, GeometricFabrics
